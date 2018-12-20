@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace TinyStore.Attributes
 {
     public class CollectionNameAttribute : Attribute

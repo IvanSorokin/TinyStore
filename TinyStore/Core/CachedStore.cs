@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace TinyStore.Core
 {
-    public class CachedStore
+    internal class CachedStore
     {
         private readonly Dictionary<string, Dictionary<string, object>> collections = new Dictionary<string, Dictionary<string, object>>();
 
