@@ -41,16 +41,16 @@ namespace TinyStore.Core
             return json != null ? JsonConvert.DeserializeObject<T>(json) : default(T);
         }
 
-        public IEnumerable<T> FindByQuery<T>(Func<T, bool> selector, string collectionName = null)
+        public IEnumerable<T> FindByQuery<T>(Func<T, bool> filter, string collectionName = null)
         {
             collectionName = GetCollectionName(typeof(T), collectionName);
 
             if (cachedStore != null)
-                return cachedStore.GetCollection(collectionName).Cast<T>().Where(selector);
+                return cachedStore.GetCollection(collectionName).Cast<T>().Where(filter);
 
             return fs.GetCollection(collectionName)
                      .Select(x => JsonConvert.DeserializeObject<T>(x))
-                     .Where(selector);
+                     .Where(filter);
         }
 
         public void DeleteById<T>(string id, string collectionName = null)
@@ -60,21 +60,45 @@ namespace TinyStore.Core
             cachedStore?.Delete(collectionName, new[] { id });
         }
 
-        public void DeleteByQuery<T>(Func<T, bool> selector, string collectionName = null)
+        public void DeleteByQuery<T>(Func<T, bool> filter, string collectionName = null)
         {
             collectionName = GetCollectionName(typeof(T), collectionName);
 
-            var pairs = fs.GetCollectionFiles(collectionName)
-                          .Select(x => (id: x, obj: JsonConvert.DeserializeObject<T>(fs.GetFromCollection(x, collectionName))))
-                          .Where(x => selector(x.obj));
-
-            foreach (var pair in pairs)
+            foreach (var pair in GetFilteredPairs(filter, collectionName))
             {
                 fs.Delete(pair.id, collectionName);
                 cachedStore?.Delete(collectionName, new[] { pair.id });
             }
         }
 
+        public void Modify<T>(string id, Action<T> modify, string collectionName = null)
+        {
+            collectionName = GetCollectionName(typeof(T), collectionName);
+            var doc = FindById<T>(id, collectionName);
+            if (doc != default)
+            {
+                modify(doc);
+                Save(id, doc, collectionName);
+            }
+        }
+
+        public void ModifyByQuery<T>(Func<T, bool> filter, Action<T> modify, string collectionName = null)
+        {
+            collectionName = GetCollectionName(typeof(T), collectionName);
+
+            foreach (var pair in GetFilteredPairs(filter, collectionName))
+            {
+                modify(pair.obj);
+                Save(pair.id, pair.obj, collectionName);
+            }
+        }
+
+        private IEnumerable<(string id, T obj)> GetFilteredPairs<T>(Func<T, bool> filter, string collectionName)
+        {
+            return fs.GetCollectionFiles(collectionName)
+                     .Select(x => (id: x, obj: JsonConvert.DeserializeObject<T>(fs.GetFromCollection(x, collectionName))))
+                     .Where(x => filter(x.obj));
+        }
 
         private string GetCollectionName(Type type, string collectionName)
         {
@@ -84,7 +108,7 @@ namespace TinyStore.Core
                                                      typeof(CollectionNameAttribute)) as CollectionNameAttribute)?.Name;
             if (name == null)
                 throw new ArgumentException("No collection name was provided and type had " +
-                	"no CollectionNameAttribute and UseTypeNameForCollection was false");
+                    "no CollectionNameAttribute and UseTypeNameForCollection was false");
 
             return name;
         }
