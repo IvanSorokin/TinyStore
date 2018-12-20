@@ -65,7 +65,7 @@ namespace TinyStore.Core
         public IEnumerable<string> GetCollection(string collectionName)
         {
             return Directory.EnumerateFiles(Path.Combine(rootDirectory, collectionName))
-                     .Select(x => File.ReadAllText(x));
+                            .Select(x => File.ReadAllText(x));
         }
     }
 }
