@@ -9,9 +9,11 @@ namespace TinyStore.Core
     public class Store
     {
         private readonly TinyFs fs;
+        private readonly bool useTypeNameForCollection;
 
-        public Store(string dbPath = null, bool keepFilesInMemory = false)
+        public Store(string dbPath = null, bool useTypeNameForCollection = false)
         {
+            this.useTypeNameForCollection = useTypeNameForCollection;
             fs = new TinyFs(dbPath);
         }
 
@@ -54,13 +56,15 @@ namespace TinyStore.Core
         }
 
 
-        private static string GetCollectionName(Type type, string collectionName)
+        private string GetCollectionName(Type type, string collectionName)
         {
             var name = collectionName ??
+                       (useTypeNameForCollection ? type.Name : null) ??
                        (Attribute.GetCustomAttribute(type,
                                                      typeof(CollectionNameAttribute)) as CollectionNameAttribute)?.Name;
             if (name == null)
-                throw new ArgumentException("No collection name was provided and type had no CollectionNameAttribute");
+                throw new ArgumentException("No collection name was provided and type had " +
+                	"no CollectionNameAttribute and UseTypeNameForCollection was false");
 
             return name;
         }
