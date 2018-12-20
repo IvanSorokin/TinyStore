@@ -44,22 +44,10 @@ namespace TinyStore.Core
                 File.Delete(path);
         }
 
-        public void DeleteFile(string path)
-        {
-            if (File.Exists(path))
-                File.Delete(path);
-        }
-
-        public string GetFile(string path)
-        {
-            if (File.Exists(path))
-                return File.ReadAllText(path);
-            return null;
-        }
-
         public IEnumerable<string> GetCollectionFiles(string collectionName)
         {
-            return Directory.EnumerateFiles(Path.Combine(rootDirectory, collectionName));
+            return Directory.EnumerateFiles(Path.Combine(rootDirectory, collectionName))
+                            .Select(x => Path.GetFileName(x));
         }
 
         public IEnumerable<string> GetCollection(string collectionName)

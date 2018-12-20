@@ -11,11 +11,14 @@ namespace TinyStore.Core
         private readonly TinyFs fs;
         private readonly bool keepDbInMemory;
         private readonly bool useTypeNameForCollection;
+        private readonly CachedStore cachedStore;
 
         public Store(string dbPath = null, bool useTypeNameForCollection = false, bool keepDbInMemory = false)
         {
             this.useTypeNameForCollection = useTypeNameForCollection;
             this.keepDbInMemory = keepDbInMemory;
+            if (keepDbInMemory)
+                cachedStore = new CachedStore();
             fs = new TinyFs(dbPath);
         }
 
@@ -24,11 +27,16 @@ namespace TinyStore.Core
             collectionName = GetCollectionName(typeof(T), collectionName);
             var json = JsonConvert.SerializeObject(document);
             fs.SaveToCollection(json, id, collectionName);
+            cachedStore?.Save(collectionName, id, document);
         }
 
         public T FindById<T>(string id, string collectionName = null)
         {
             collectionName = GetCollectionName(typeof(T), collectionName);
+
+            if (cachedStore != null)
+                return cachedStore.Get(collectionName, new[] { id }).Cast<T>().SingleOrDefault();
+
             var json = fs.GetFromCollection(id, collectionName);
             return json != null ? JsonConvert.DeserializeObject<T>(json) : default(T);
         }
@@ -36,6 +44,10 @@ namespace TinyStore.Core
         public IEnumerable<T> FindByQuery<T>(Func<T, bool> selector, string collectionName = null)
         {
             collectionName = GetCollectionName(typeof(T), collectionName);
+
+            if (cachedStore != null)
+                return cachedStore.GetCollection(collectionName).Cast<T>().Where(selector);
+
             return fs.GetCollection(collectionName)
                      .Select(x => JsonConvert.DeserializeObject<T>(x))
                      .Where(selector);
@@ -45,17 +57,22 @@ namespace TinyStore.Core
         {
             collectionName = GetCollectionName(typeof(T), collectionName);
             fs.Delete(id, collectionName);
+            cachedStore?.Delete(collectionName, new[] { id });
         }
 
         public void DeleteByQuery<T>(Func<T, bool> selector, string collectionName = null)
         {
             collectionName = GetCollectionName(typeof(T), collectionName);
-            var paths = fs.GetCollectionFiles(collectionName)
-                          .Select(x => (path: x, obj: JsonConvert.DeserializeObject<T>(fs.GetFile(x))))
-                          .Where(x => selector(x.obj))
-                          .Select(x => x.path);
-            foreach (var path in paths)
-                fs.DeleteFile(path);
+
+            var pairs = fs.GetCollectionFiles(collectionName)
+                          .Select(x => (id: x, obj: JsonConvert.DeserializeObject<T>(fs.GetFromCollection(x, collectionName))))
+                          .Where(x => selector(x.obj));
+
+            foreach (var pair in pairs)
+            {
+                fs.Delete(pair.id, collectionName);
+                cachedStore?.Delete(collectionName, new[] { pair.id });
+            }
         }
 
 

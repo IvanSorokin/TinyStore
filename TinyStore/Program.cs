@@ -15,7 +15,7 @@ namespace Program
     {
         static void Main(string[] args)
         {
-            var store = new Store("/Users/ivansorokin/Desktop", useTypeNameForCollection : true);
+            var store = new Store("/Users/ivansorokin/Desktop", useTypeNameForCollection : true, keepDbInMemory: true);
             var employee1 = new Employee() { Name = "Alexey" };
             var employee2 = new Employee() { Name = "Ivan" };
 
