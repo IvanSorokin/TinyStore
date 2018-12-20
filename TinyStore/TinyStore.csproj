@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
@@ -14,14 +14,17 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="OperationResult.cs" />
-  </ItemGroup>
+
   <ItemGroup>
     <Folder Include="Attributes\" />
     <Folder Include="Core\" />
   </ItemGroup>
-  <ItemGroup>
-    <None Remove="tinyDb\users\Ivan" />
-  </ItemGroup>
+  <PropertyGroup>
+    <PackageId>TinyStore</PackageId>
+    <Version>1.0.1</Version>
+    <Authors>Ivan Sorokin</Authors>
+    <Description>Simple database for simple projects</Description>
+    <PackageDescription>This lib is designed for small projects. It uses simple structure of folders and files to manage your data like a real db. Also you can enable cache for faster operations. TinyStore provide basic CRUD operations and thats all.</PackageDescription>
+    <Copyright>IvanSorokin</Copyright>
+  </PropertyGroup>
 </Project>
