@@ -18,9 +18,10 @@ namespace TinyStore
         {
             this.useTypeNameForCollection = useTypeNameForCollection;
             this.keepDbInMemory = keepDbInMemory;
+            fs = new TinyFs(dbPath);
+
             if (keepDbInMemory)
                 cachedStore = new CachedStore(fs);
-            fs = new TinyFs(dbPath);
         }
 
         public void Save<T>(string id, T document, string collectionName = null)

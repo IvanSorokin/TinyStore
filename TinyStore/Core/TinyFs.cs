@@ -54,7 +54,7 @@ namespace TinyStore.Core
         {
             foreach (var directoryPath in Directory.EnumerateDirectories(rootDirectory))
                 foreach (var filePath in Directory.EnumerateFiles(directoryPath))
-                    yield return (Path.GetFileName(filePath), Path.GetDirectoryName(directoryPath), File.ReadAllText(filePath));
+                    yield return (Path.GetFileName(filePath), Path.GetFileName(directoryPath), File.ReadAllText(filePath));
         }
 
         public IEnumerable<string> GetCollection(string collectionName)

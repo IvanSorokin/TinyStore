@@ -11,7 +11,9 @@ namespace TinyStore.Core
         {
             if (Object != default)
                 return (T)Object;
-            return JsonConvert.DeserializeObject<T>(Json);
+            var deserialized = JsonConvert.DeserializeObject<T>(Json);
+            Object = deserialized;
+            return deserialized;
         }
     }
 }
