@@ -11,8 +11,8 @@ namespace TinyStore.Core
         public CachedStore(TinyFs fs)
         {
             this.fs = fs;
-            foreach (var entitiy in fs.GetAllEntities())
-                Save(entitiy.CollectionName, entitiy.Id, null, entitiy.Content);
+            foreach (var entity in fs.GetAllEntities())
+                Save(entity.CollectionName, entity.Id, null, entity.Content);
         }
 
         public void Save(string collectionName, string id, object obj, string json = null)
@@ -47,7 +47,7 @@ namespace TinyStore.Core
         public IEnumerable<T> GetCollection<T>(string collectionName)
         {
             if (collections.ContainsKey(collectionName))
-                return collections[collectionName].Select(x => x.Value.Value<T>());
+                return collections[collectionName].Values.Select(x => x.Value<T>());
             return Enumerable.Empty<T>();
         }
     }
