@@ -37,7 +37,7 @@ namespace TinyStore
             collectionName = GetCollectionName(typeof(T), collectionName);
 
             if (cachedStore != null)
-                return cachedStore.Get<T>(collectionName, new[] { id }).Cast<T>().SingleOrDefault();
+                return cachedStore.Get<T>(collectionName, new[] { id }).SingleOrDefault();
 
             var json = fs.GetFromCollection(id, collectionName);
             return json != null ? JsonConvert.DeserializeObject<T>(json) : default(T);
@@ -48,7 +48,7 @@ namespace TinyStore
             collectionName = GetCollectionName(typeof(T), collectionName);
 
             if (cachedStore != null)
-                return cachedStore.GetCollection<T>(collectionName).Cast<T>().Where(filter);
+                return cachedStore.GetCollection<T>(collectionName).Where(filter);
 
             return fs.GetCollection(collectionName)
                      .Select(x => JsonConvert.DeserializeObject<T>(x))
