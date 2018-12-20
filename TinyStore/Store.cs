@@ -19,7 +19,7 @@ namespace TinyStore
             this.useTypeNameForCollection = useTypeNameForCollection;
             this.keepDbInMemory = keepDbInMemory;
             if (keepDbInMemory)
-                cachedStore = new CachedStore();
+                cachedStore = new CachedStore(fs);
             fs = new TinyFs(dbPath);
         }
 
@@ -36,7 +36,7 @@ namespace TinyStore
             collectionName = GetCollectionName(typeof(T), collectionName);
 
             if (cachedStore != null)
-                return cachedStore.Get(collectionName, new[] { id }).Cast<T>().SingleOrDefault();
+                return cachedStore.Get<T>(collectionName, new[] { id }).Cast<T>().SingleOrDefault();
 
             var json = fs.GetFromCollection(id, collectionName);
             return json != null ? JsonConvert.DeserializeObject<T>(json) : default(T);
@@ -47,7 +47,7 @@ namespace TinyStore
             collectionName = GetCollectionName(typeof(T), collectionName);
 
             if (cachedStore != null)
-                return cachedStore.GetCollection(collectionName).Cast<T>().Where(filter);
+                return cachedStore.GetCollection<T>(collectionName).Cast<T>().Where(filter);
 
             return fs.GetCollection(collectionName)
                      .Select(x => JsonConvert.DeserializeObject<T>(x))

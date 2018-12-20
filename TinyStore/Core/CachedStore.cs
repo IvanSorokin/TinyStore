@@ -5,25 +5,33 @@ namespace TinyStore.Core
 {
     internal class CachedStore
     {
-        private readonly Dictionary<string, Dictionary<string, object>> collections = new Dictionary<string, Dictionary<string, object>>();
+        private readonly TinyFs fs;
+        private readonly Dictionary<string, Dictionary<string, CachedObject>> collections = new Dictionary<string, Dictionary<string, CachedObject>>();
 
-        public void Save(string collectionName, string id, object obj)
+        public CachedStore(TinyFs fs)
+        {
+            this.fs = fs;
+            foreach (var entitiy in fs.GetAllEntities())
+                Save(entitiy.CollectionName, entitiy.Id, null, entitiy.Content);
+        }
+
+        public void Save(string collectionName, string id, object obj, string json = null)
         {
             if (collections.ContainsKey(collectionName))
-                collections[collectionName][id] = obj;
+                collections[collectionName][id] = new CachedObject { Object = obj, Json = json };
             else
             {
-                collections[collectionName] = new Dictionary<string, object>();
-                collections[collectionName][id] = obj;
+                collections[collectionName] = new Dictionary<string, CachedObject>();
+                collections[collectionName][id] = new CachedObject { Object = obj, Json = json };
             }
         }
 
-        public IEnumerable<object> Get(string collectionName, IEnumerable<string> ids)
+        public IEnumerable<T> Get<T>(string collectionName, IEnumerable<string> ids)
         {
             foreach (var id in ids)
             {
                 if (collections.ContainsKey(collectionName) && collections[collectionName].ContainsKey(id))
-                    yield return collections[collectionName][id];
+                    yield return collections[collectionName][id].Value<T>();
             }
         }
 
@@ -36,11 +44,11 @@ namespace TinyStore.Core
             }
         }
 
-        public IEnumerable<object> GetCollection(string collectionName)
+        public IEnumerable<T> GetCollection<T>(string collectionName)
         {
             if (collections.ContainsKey(collectionName))
-                return collections[collectionName].Select(x => x.Value);
-            return Enumerable.Empty<object>();
+                return collections[collectionName].Select(x => x.Value.Value<T>());
+            return Enumerable.Empty<T>();
         }
     }
 }

@@ -50,6 +50,13 @@ namespace TinyStore.Core
                             .Select(x => Path.GetFileName(x));
         }
 
+        public IEnumerable<(string Id, string CollectionName, string Content)> GetAllEntities()
+        {
+            foreach (var directoryPath in Directory.EnumerateDirectories(rootDirectory))
+                foreach (var filePath in Directory.EnumerateFiles(directoryPath))
+                    yield return (Path.GetFileName(filePath), Path.GetDirectoryName(directoryPath), File.ReadAllText(filePath));
+        }
+
         public IEnumerable<string> GetCollection(string collectionName)
         {
             return Directory.EnumerateFiles(Path.Combine(rootDirectory, collectionName))
