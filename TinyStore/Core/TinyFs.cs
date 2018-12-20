@@ -37,6 +37,31 @@ namespace TinyStore.Core
             return null;
         }
 
+        public void Delete(string id, string collectionName)
+        {
+            var path = Path.Combine(rootDirectory, collectionName, id);
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+
+        public void DeleteFile(string path)
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+
+        public string GetFile(string path)
+        {
+            if (File.Exists(path))
+                return File.ReadAllText(path);
+            return null;
+        }
+
+        public IEnumerable<string> GetCollectionFiles(string collectionName)
+        {
+            return Directory.EnumerateFiles(Path.Combine(rootDirectory, collectionName));
+        }
+
         public IEnumerable<string> GetCollection(string collectionName)
         {
             return Directory.EnumerateFiles(Path.Combine(rootDirectory, collectionName))

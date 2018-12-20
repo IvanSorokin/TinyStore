@@ -10,7 +10,7 @@ namespace TinyStore.Core
     {
         private readonly TinyFs fs;
 
-        public Store(string dbPath = null)
+        public Store(string dbPath = null, bool keepFilesInMemory = false)
         {
             fs = new TinyFs(dbPath);
         }
@@ -36,6 +36,23 @@ namespace TinyStore.Core
                      .Select(x => JsonConvert.DeserializeObject<T>(x))
                      .Where(selector);
         }
+
+        public void DeleteById<T>(string id, string collectionName = null)
+        {
+            collectionName = GetCollectionName(typeof(T), collectionName);
+            fs.Delete(id, collectionName);
+        }
+
+        public void DeleteByQuery<T>(Func<T, bool> selector, string collectionName = null)
+        {
+            collectionName = GetCollectionName(typeof(T), collectionName);
+            fs.GetCollectionFiles(collectionName)
+              .Select(x => (path : x, obj : JsonConvert.DeserializeObject<T>(fs.GetFile(x))))
+              .Where(x => selector(x.obj))
+              .ToList()
+              .ForEach(x => fs.DeleteFile(x.path));
+        }
+
 
         private static string GetCollectionName(Type type, string collectionName)
         {
