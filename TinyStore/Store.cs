@@ -10,14 +10,12 @@ namespace TinyStore
     public class Store
     {
         private readonly TinyFs fs;
-        private readonly bool keepDbInMemory;
         private readonly bool useTypeNameForCollection;
         private readonly CachedStore cachedStore;
 
-        public Store(string dbPath = null, bool useTypeNameForCollection = false, bool keepDbInMemory = false)
+        public Store(string dbPath = null, bool useTypeNameForCollection = true, bool keepDbInMemory = true)
         {
             this.useTypeNameForCollection = useTypeNameForCollection;
-            this.keepDbInMemory = keepDbInMemory;
             fs = new TinyFs(dbPath);
 
             if (keepDbInMemory)
@@ -73,7 +71,7 @@ namespace TinyStore
             }
         }
 
-        public void Modify<T>(string id, Action<T> modify, string collectionName = null)
+        public void ModifyById<T>(string id, Action<T> modify, string collectionName = null)
         {
             collectionName = GetCollectionName(typeof(T), collectionName);
             var doc = FindById<T>(id, collectionName);
@@ -102,12 +100,16 @@ namespace TinyStore
                      .Where(x => filter(x.obj));
         }
 
+        private string GetCollectionNameFromAttribute(Type type)
+            => (Attribute.GetCustomAttribute(type,
+                                             typeof(CollectionNameAttribute)) as CollectionNameAttribute)?.Name;
+
         private string GetCollectionName(Type type, string collectionName)
         {
             var name = collectionName ??
-                       (useTypeNameForCollection ? type.Name : null) ??
-                       (Attribute.GetCustomAttribute(type,
-                                                     typeof(CollectionNameAttribute)) as CollectionNameAttribute)?.Name;
+                       GetCollectionNameFromAttribute(type) ??
+                       (useTypeNameForCollection ? type.Name : null);
+            
             if (name == null)
                 throw new ArgumentException("No collection name was provided and type had " +
                     "no CollectionNameAttribute and UseTypeNameForCollection was false");

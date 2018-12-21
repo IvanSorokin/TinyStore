@@ -5,12 +5,10 @@ namespace TinyStore.Core
 {
     internal class CachedStore
     {
-        private readonly TinyFs fs;
         private readonly Dictionary<string, Dictionary<string, CachedObject>> collections = new Dictionary<string, Dictionary<string, CachedObject>>();
 
         public CachedStore(TinyFs fs)
         {
-            this.fs = fs;
             foreach (var entity in fs.GetAllEntities())
                 Save(entity.CollectionName, entity.Id, null, entity.Content);
         }
